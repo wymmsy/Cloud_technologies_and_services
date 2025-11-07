@@ -1,4 +1,4 @@
-# Cloud_technologies_and_services
+# Cloud technologies and services
 
 Лабораторчные работы по дисциплине "Облачные технологии и услуги"
 
