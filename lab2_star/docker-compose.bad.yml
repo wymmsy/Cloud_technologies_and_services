@@ -1,0 +1,30 @@
+version: '3'
+services:
+    web:
+        image: nginx:latest
+        ports: 
+            - "80:80"
+        environment:
+            DB_URL: postgres://user:secretpassword@db:5432/mydb
+            DEBUG: "true"
+        depends_on:
+            - db
+        volumes:
+            - .:/app
+        restart: always
+
+db:
+    image: postgres:latest
+    environment:
+        POSTRES_PASSWORD: qwerty123
+        POSTGRES_USER: admin
+        POSTGRES_DB: mydb
+    volumes:
+        - db_data:/var/lib/postresql/data
+
+redis:
+    image: redis:latest
+    command: redis-server --requirepass "simplepass"
+
+volumes:
+    db_data:
