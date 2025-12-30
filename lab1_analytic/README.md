@@ -1,43 +1,55 @@
 ## Лабораторная работа 1. Знакомство с IaaS, PaaS, SaaS сервисами в облаке на примере Amazon Web Services (AWS). Создание сервисной модели.
 
+В первой лабораторной работе был разработан фрагмент биллинга AWS и превращение его в сервисную модель с уровнями абстракции. Основной упор был на понимание того, что именно потребляет заказчик в облаке и как это отнести к понятным категориям (Storage, Compute, Cloud Services и т.д.).  
 
-В первой лабораторной работе был разработан фрагмент биллинга AWS и превращение его в сервисную модель с уровнями абстракции. Основной упор был на понимание того, что именно потребляет заказчик в облаке и как это отнести к понятным категориям (Storage, Compute, Cloud Services и т.д.).​
-Ход работы
-Сначала был импортирован выданный CSV с полями Product Code, Usage Type, lineItem/Operation, lineItem/LineItemDescription и пустыми колонками IT Tower, Service Family, Service Type, Service Sub Type, Service Usage Type. В качестве ориентира использовался примерный файл с маппингом, где показано, как по комбинации Product Code и Usage Type можно восстановить высокоуровневую классификацию сервиса.​ Дальше в лабораторной работа шла снизу вверх, от сырых кодов в биллинге к понятной иерархии сервисов. 
+Отдельно в отчёте я кратко описала каждый сервис: что он делает, зачем вообще нужен и какой есть близкий аналог в российских облаках (Яндекс Облако, VK Cloud, Сбертех и др.), чтобы было проще «переводить» модель не только между AWS и Azure, но и на локальные платформы.
+
+Ход работы  
+Сначала был импортирован выданный CSV с полями Product Code, Usage Type, lineItem/Operation, lineItem/LineItemDescription и пустыми колонками IT Tower, Service Family, Service Type, Service Sub Type, Service Usage Type. В качестве ориентира использовался примерный файл с маппингом, где показано, как по комбинации Product Code и Usage Type можно восстановить высокоуровневую классификацию сервиса.  Дальше в лабораторной работа шла снизу вверх, от сырых кодов в биллинге к понятной иерархии сервисов.
+
 ***
 
 ## 1. Группировка по Product Code и выбор IT Tower / Service Family / Service Type
 
 ### 1) AmazonS3
 
+Amazon S3 — это объектное хранилище файлов и данных: туда кладут бэкапы, логи, статику сайтов, архивы и вообще всё, что нужно надёжно хранить в облаке и иногда скачивать. В российских облаках ближайшие аналоги — **Объектное хранилище в Яндекс Облаке**, **Object Storage в VK Cloud** или аналогичный сервис у Сбера.  
+
 1. Сначала я отфильтровала строки по `Product Code = AmazonS3`.  
 2. Посмотрела на смысл сервиса: Amazon S3 — это объектное хранилище файлов и данных в AWS, которое в типичных схемах относится к блоку Storage.  
 3. Поэтому в колонке **IT Tower** для всех строк с AmazonS3 я указала `Storage` — этим я зафиксировала, что независимо от того, какие именно операции выполнялись (хранение, запросы, штрафы), все они относятся к «башне» хранения данных.  
-4. Дальше я выбрала **Service Family**. В примере сервисов у провайдера для S3/Glacier использовалась семья `Storage&Content Delivery`, которая объединяет хранилище и доставку контента. Это достаточно логично, так как S3 часто используется и как хранилище, и как источник для отдачи данных наружу. 
+4. Дальше я выбрала **Service Family**. В примере сервисов у провайдера для S3/Glacier использовалась семья `Storage&Content Delivery`, которая объединяет хранилище и доставку контента. Это достаточно логично, так как S3 часто используется и как хранилище, и как источник для отдачи данных наружу.  
 5. В колонке **Service Type** я написала `Amazon S3` — это имя конкретного сервиса, чтобы в дальнейшем в модели можно было различать, что именно за облачный продукт стоит за расходами.
 
 Таким образом, для AmazonS3 я сначала зафиксировала три верхних уровня: Storage → Storage&Content Delivery → Amazon S3. А уже потом внутри этой группы разбирала, что именно делает каждая строка Usage Type.
 
 ### 2) AmazonGlacier
+ 
+Amazon Glacier — это архивное («холодное») хранилище: туда кладут данные, к которым почти не обращаются, зато хранить их очень дёшево. Обычно это долгосрочные бэкапы, журналы, архивы. В российских облаках похожие возможности дают **«холодные»/архивные классы хранения в объектных хранилищах** (например, холодное хранилище в Яндекс Облаке или архивные классы в VK Cloud).  
 
 1. Аналогично я отфильтровала строки по `Product Code = AmazonGlacier`.  
 2. Amazon Glacier — это архивное хранилище, где данные лежат долго и дёшево, но доступ к ним медленнее. Узнала, что такие хранилища называют “холодными”. А по смыслу это тоже часть блока хранения.  
 3. Поэтому **IT Tower** снова был `Storage` для всех строк Glacier.  
 4. **Service Family** я оставила той же — `Storage&Content Delivery`, потому что Glacier в примерах также относился к этому семейству и логически продолжает тему хранения и архивации.  
-5. **Service Type** — `Amazon Glacier`, чтобы отделить его от S3, хотя они в одной башне и одной семье.
+5. **Service Type** — `Amazon Glacier`, чтобы отделить его от S3, хотя они в одной башне и одной семье.  
+
 Так появилась вторая ветка в модели: Storage → Storage&Content Delivery → Amazon Glacier.
 
 ### 3) AmazonRedshift
+ 
+Amazon Redshift — это облачное аналитическое хранилище данных (DWH), куда обычно складывают большие объёмы данных из разных систем и крутят по ним аналитические запросы и отчётность. В российских облаках аналоги — **Яндекс Managed Service for ClickHouse / Greenplum**, **VK Cloud ClickHouse / Greenplum**, DWH‑решения в Сбертехе.  
 
 1. Далее я взяла строки с `Product Code = AmazonRedshift`.  
 2. Amazon Redshift — это аналитическое хранилище данных, управляемый сервис для аналитики и запросов по большим объёмам данных. Это уже не просто виртуальный диск, а довольно умный сервис.  
-3. Поэтому **IT Tower** я выбрала `Cloud Services`, это показывает, что мы имеем дело с облачным сервисом, а не с инфраструктурой, и сервис более управляемый.
+3. Поэтому **IT Tower** я выбрала `Cloud Services`, это показывает, что мы имеем дело с облачным сервисом, а не с инфраструктурой, и сервис более управляемый.  
 4. В качестве **Service Family** я выбрала `Analytics`, потому что Redshift используют именно для аналитики и BI‑нагрузок (запросы по большим датасетам, отчётность и т.д.).  
 5. В **Service Type** записала `Amazon Redshift`, чтобы в модели была отдельная сущность для этого аналитического сервиса.
 
 Получилась ветка Cloud Services → Analytics → Amazon Redshift.
 
 ### 4) AWSDirectoryService
+
+AWS Directory Service — это управляемый сервис каталогов: фактически Active Directory в облаке или коннектор к уже существующему AD. Он нужен для аутентификации пользователей и интеграции приложений с доменной инфраструктурой. В российских облаках ближайшие аналоги — **Managed Microsoft AD в VK Cloud**, сервисы управляемого AD у крупных провайдеров, а также локально развёрнутый AD как услуга в дата‑центрах.  
 
 1. Затем я сгруппировала строки по `Product Code = AWSDirectoryService`.  
 2. AWS Directory Service — это сервис каталогов (Active Directory, Simple AD, AD Connector), то есть про управление пользователями, группами и аутентификацией. Это уже не хранилище и не вычисления, это сервис идентификации и безопасности.  
@@ -48,39 +60,45 @@
 Снова добавила ветку: Cloud Services → Security and Identity → AWS Directory Service.
 
 ### 5) AmazonSNS
+  
+Amazon SNS — это сервис уведомлений и рассылок: он умеет отправлять сообщения по HTTP(S), в очереди SQS, по e‑mail, SMS и push‑уведомления. Нужен, чтобы приложения могли быстро и надёжно «рассылать» события по разным каналам. В российских облаках есть похожий функционал в виде **Message Queue / Notification Service в VK Cloud**, **Yandex Message Queue + уведомления через связанные сервисы**, а также интеграции с внешними SMS‑/push‑провайдерами.  
 
-1. Далбше `Product Code = AmazonSNS`.  
+1. Дальше `Product Code = AmazonSNS`.  
 2. Amazon SNS — сервис уведомлений, он умеет отправлять сообщения по HTTP, в очереди SQS, SMS и push‑уведомления. Это прикладной облачный сервис, не инфраструктура.  
 3. Поэтому **IT Tower** для него — `Cloud Services`.  
-4. В **Service Family** я выбрала `Application Services`, так как у SNS  есть прикладная функциональность, он отправляет сообщения другим приложениям.  
+4. В **Service Family** я выбрала `Application Services`, так как у SNS есть прикладная функциональность, он отправляет сообщения другим приложениям.  
 5. В **Service Type** записала `Amazon SNS`.
 
 Получилась ветка Cloud Services → Application Services → Amazon SNS.
 
 ### 6) AmazonML, Translate, Transcribe, Polly
 
-Для всех AI‑сервисов логика была одинаковой:
+Эта группа — AI‑сервисы AWS:
 
-- `AmazonML` (машинное обучение, обучение и оценка моделей)
-- `translate` (Amazon Translate, перевод текста)
-- `transcribe` (Amazon Transcribe, распознавание речи)
-- `AmazonPolly` (синтез речи)
+- Amazon ML — классический сервис машинного обучения (обучение и оценка моделей, сейчас в AWS чаще используют SageMaker, но суть та же).  
+- Amazon Translate — перевод текста.  
+- Amazon Transcribe — распознавание речи из аудио.  
+- Amazon Polly — синтез речи.  
+
+Нужны они для того, чтобы разработчик мог быстро прикручивать ML‑функциональность (перевод, распознавание, озвучку) без ручного обучения моделей. Аналоги в российских облаках: **Yandex Translate / SpeechKit / Vision**, **VK Cloud AI‑сервисы**, **СберCloud ML Space + сервисы речи и текста**.  
 
 Для каждой группы:
 
 1. **IT Tower** = `Cloud Services`, потому что это полностью управляемые облачные сервисы, где пользователь просто вызывает высокоуровневые операции (перевести текст, распознать аудио, сгенерировать речь).  
-2. **Service Family** = `Artificial Intelligence`, так как все эти услуги так или инче относятся к машинному обучению.  
+2. **Service Family** = `Artificial Intelligence`, так как все эти услуги так или иначе относятся к машинному обучению.  
 3. **Service Type** = имя конкретного сервиса: `Amazon ML`, `Amazon Translate`, `Amazon Transcribe`, `Amazon Polly`.
 
 В модели появилась ветка Cloud Services → Artificial Intelligence → (конкретные AI‑сервисы).
 
 ### 7) AWSCodePipeline и CodeBuild
+ 
+AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD: CodePipeline собирает «цепочку» шагов (сборка, тесты, деплой), а CodeBuild отвечает за саму сборку кода. Нужны они, чтобы автоматизировать поставку приложений. В российских облаках похожие вещи есть в виде **Yandex Cloud Deploy / Managed GitLab**, **VK Cloud DevOps**, а также managed‑инстансов GitLab/Jenkins.  
 
 1. Для `AWSCodePipeline` и `CodeBuild` я также сначала отфильтровала строки по Product Code.  
 2. Оба сервиса относятся к инструментам разработчика: CodePipeline — CI/CD конвейеры, CodeBuild — сборка кода.  
 3. Поэтому у обоих:  
    - **IT Tower** = `Cloud Services`  
-   - **Service Family** = `Developer Tools`
+   - **Service Family** = `Developer Tools`  
    - **Service Type** = `AWS CodePipeline` или `AWS CodeBuild`
 
 Эта ветка описывает блок сервисов, которые помогают строить и разворачивать приложения: Cloud Services → Developer Tools → (CodePipeline/CodeBuild).
@@ -95,25 +113,25 @@
 
 1. Я просмотрела все значения `Usage Type` у AmazonS3. Там были маски вида `EarlyDelete-*`, `Requests%TierN`, `TagStorage-TagHrs%`.  
 2. Логика была такая:  
-   - если Usage Type описывает штраф за раннее удаление, то это один тип использования
-   - если описывает запросы к S3 — другой
-   - если описывает хранение тегов — уже третий
+   - если Usage Type описывает штраф за раннее удаление, то это один тип использования  
+   - если описывает запросы к S3 — другой  
+   - если описывает хранение тегов — уже третий  
 
 Примеры:
 
 - Для `Usage Type = %EarlyDelete-GDA` я поняла, что это Early Delete для класса Glacier Deep Archive. Таким образом:  
-  - **Service Sub Type** = `Glacier Deep Archive` — это конкретный класс хранения 
-  - **Service Usage Type** = `Early Delete Fee` — вид потребления, штраф
+  - **Service Sub Type** = `Glacier Deep Archive` — это конкретный класс хранения  
+  - **Service Usage Type** = `Early Delete Fee` — вид потребления, штраф  
 
 - Для `Usage Type = %Requests%Tier3` (и других Tier1–Tier6) я трактовала это как платные запросы к S3. Поэтому:  
-  - **Service Sub Type** = `Requests Tier3` (для каждой строки свой Tier)
-  - **Service Usage Type** = `API Requests` — общий тип потребления
+  - **Service Sub Type** = `Requests Tier3` (для каждой строки свой Tier)  
+  - **Service Usage Type** = `API Requests` — общий тип потребления  
 
 - Для `Usage Type = %TagStorage-TagHrs%` это оплата за хранение тегов:  
-  - **Service Sub Type** = `Tag Storage`
-  - **Service Usage Type** = `Tag Hours` 
+  - **Service Sub Type** = `Tag Storage`  
+  - **Service Usage Type** = `Tag Hours`  
 
-Главный принцип: Sub Type показывает, что именно внутри сервиса, а Usage Type — какой ресурс или операция оплачивается (хранение, запрос, штраф и т.д.).
+Главный принцип: Sub Type показывает, что именно внутри сервиса, а Usage Type — какой ресурс или операция оплачивается (хранение, запросы, штрафы и т.д.).
 
 ### 2) Внутри AmazonGlacier
 
@@ -121,20 +139,20 @@
 2. Логика:
 
 - `ProvisionedCapacityUnit` — заранее купленная ёмкость запросов:  
-  - Sub Type = `Provisioned Capacity`
-  - Usage Type = `Provisioned Capacity Unit`
+  - Sub Type = `Provisioned Capacity`  
+  - Usage Type = `Provisioned Capacity Unit`  
 
 - `TimedStorage-ByteHrs` — хранение данных в байтах*часах (байты умноженные на часы):  
-  - Sub Type = `Archive Storage`
-  - Usage Type = `Storage Byte-Hours`
+  - Sub Type = `Archive Storage`  
+  - Usage Type = `Storage Byte-Hours`  
 
 - `Requests-Tier1/3` — запросы восстановления или доступа:  
-  - Sub Type = `Requests Tier1` / `Requests Tier3`
-  - Usage Type = `Requests`
+  - Sub Type = `Requests Tier1` / `Requests Tier3`  
+  - Usage Type = `Requests`  
 
 - `EarlyDelete` — штраф за удаление до окончания срока:  
-  - Sub Type = `Archive Storage`
-  - Usage Type = `Early Delete Fee`
+  - Sub Type = `Archive Storage`  
+  - Usage Type = `Early Delete Fee`  
 
 Здесь видно, что один и тот же подтип (Archive Storage) может давать как обычное хранение, так и штрафы.
 
@@ -142,16 +160,16 @@
 
 1. В Redshift Usage Type вида `Node:ra`, `Node:dc`, `Node:ds` показывали разные типы узлов кластера.  
 2. Поэтому:  
-   - Sub Type = `RA Node` / `DC Node` / `DS Node`
-   - Usage Type = `Node Usage` — плата за работу узлов
+   - Sub Type = `RA Node` / `DC Node` / `DS Node`  
+   - Usage Type = `Node Usage` — плата за работу узлов  
 
 3. Для `Usage Type = %DataScanned%` было понятно, что это объём данных, который сканируется запросами:  
-   - Sub Type = `Query Processing` (или `Data Scanned`)
-   - Usage Type = `Data Scanned`
+   - Sub Type = `Query Processing` (или `Data Scanned`)  
+   - Usage Type = `Data Scanned`  
 
 4. Для `Usage Type = %RMS%` (служебные услуги Redshift) я выбрала:  
-   - Sub Type = `Redshift Managed Services`
-   - Usage Type = `Service Fee`
+   - Sub Type = `Redshift Managed Services`  
+   - Usage Type = `Service Fee`  
 
 Так в модели раздельно видны затраты на «железо» (узлы), на «работу запросов» (сканирование данных) и на «служебные сервисы».
 
@@ -161,24 +179,24 @@
 2. Например:
 
 - `Usage Type = %MicrosoftAD-DC-Usage` — управляемый Microsoft AD:  
-  - Sub Type = `Microsoft AD`
-  - Usage Type = `Domain Controller Usage`
+  - Sub Type = `Microsoft AD`  
+  - Usage Type = `Domain Controller Usage`  
 
 - `Usage Type = %SimpleAD-Usage` — Simple AD:  
-  - Sub Type = `Simple AD`
-  - Usage Type = `Directory Usage` 
+  - Sub Type = `Simple AD`  
+  - Usage Type = `Directory Usage`  
 
 - `Usage Type = %Small-Directory-Usage` — маленький каталог:  
-  - Sub Type = `Small Directory`
+  - Sub Type = `Small Directory`  
   - Usage Type = `Directory Usage`  
 
 - `Usage Type = %Large-ADConnector-Usage` — крупный AD Connector:  
-  - Sub Type = `AD Connector Large`
-  - Usage Type = `Connector Usage`
+  - Sub Type = `AD Connector Large`  
+  - Usage Type = `Connector Usage`  
 
 - `Tax%` — налоги:  
-  - Sub Type = `Directory Service`
-  - Usage Type = `Tax`
+  - Sub Type = `Directory Service`  
+  - Usage Type = `Tax`  
 
 Здесь Sub Type показывает, какой именно продукт каталога используется, а Usage Type — что именно считается, это может быть использование каталога, использование коннектора или налог.
 
@@ -188,24 +206,24 @@
 2. Поэтому:
 
 - `DeliveryAttempts-HTTP`:  
-  - Sub Type = `HTTP Delivery`
-  - Usage Type = `Delivery Attempts`
+  - Sub Type = `HTTP Delivery`  
+  - Usage Type = `Delivery Attempts`  
 
 - `DeliveryAttempts-SQS`:  
-  - Sub Type = `SQS Delivery`
-  - Usage Type = `Delivery Attempts`
+  - Sub Type = `SQS Delivery`  
+  - Usage Type = `Delivery Attempts`  
 
 - `SMS-Price%`:  
-  - Sub Type = `SMS`
-  - Usage Type = `SMS Price`
+  - Sub Type = `SMS`  
+  - Usage Type = `SMS Price`  
 
 - `SMS-Sent%`:  
-  - Sub Type = `SMS` 
-  - Usage Type = `SMS Sent`
+  - Sub Type = `SMS`  
+  - Usage Type = `SMS Sent`  
 
 - `DeliveryAttempts-APNS%`:  
-  - Sub Type = `APNS Delivery`
-  - Usage Type = `Delivery Attempts`
+  - Sub Type = `APNS Delivery`  
+  - Usage Type = `Delivery Attempts`  
 
 Так мы чётко разделяем, где платим за попытки доставки, а где за сами SMS, и какими каналами сообщения идут.
 
@@ -214,10 +232,10 @@
 1. Для AmazonML Usage Type в обеих строках был `%AMLBoxUsage`, но в Operation появлялись `TrainModel` и `EvaluateModel`.  
 2. Я использовала Operation, чтобы разделить фазы ML‑процесса:  
    - строка с TrainModel:  
-     - Sub Type = `Model Training`
-     - Usage Type = `ML Box Usage`
+     - Sub Type = `Model Training`  
+     - Usage Type = `ML Box Usage`  
    - строка с EvaluateModel:  
-     - Sub Type = `Model Evaluation`
+     - Sub Type = `Model Evaluation`  
      - Usage Type = `ML Box Usage`  
 
 Это показывает, что расходуется один и тот же ресурс (ML Box), но на разных этапах — обучение и оценка.
@@ -226,25 +244,25 @@
 
 **Translate:**
 
-- Usage Type = `%TranslateText`
-  - Sub Type = `Text Translation`
+- Usage Type = `%TranslateText`  
+  - Sub Type = `Text Translation`  
   - Usage Type = `Characters Translated` (или аналог, явно связанный с объёмом текста).  
 
 **Transcribe:**
 
 - `%StreamingAudio` + Operation StreamingAudio:  
-  - Sub Type = `Streaming Transcription`
-  - Usage Type = `Streaming Audio Minutes`
+  - Sub Type = `Streaming Transcription`  
+  - Usage Type = `Streaming Audio Minutes`  
 
 - `%TranscribeAudio` + Operation TranscribeAudio:  
-  - Sub Type = `Batch Transcription`
-  - Usage Type = `Audio Minutes`
+  - Sub Type = `Batch Transcription`  
+  - Usage Type = `Audio Minutes`  
 
 **Polly:**
 
 - Для AmazonPolly (при общем Usage Type):  
-  - Sub Type = `Text-to-Speech`
-  - Usage Type = `Speech Requests` / `Audio Generation`
+  - Sub Type = `Text-to-Speech`  
+  - Usage Type = `Speech Requests` / `Audio Generation`  
 
 Здесь я увидела одну идею: Sub Type различает задачу (например, перевод текста, стримовое распознавание, пакетное, синтез речи) и Usage Type — “единицу измерения” (символы, минуты аудио, количество запросов).
 
@@ -253,18 +271,18 @@
 **CodePipeline:**
 
 - `Tax%`:  
-  - Sub Type = `CodePipeline Service`
-  - Usage Type = `Tax`
+  - Sub Type = `CodePipeline Service`  
+  - Usage Type = `Tax`  
 
 - `%trialPipeline%`:  
-  - Sub Type = `Trial Pipeline`
-  - Usage Type = `Pipeline Usage`
+  - Sub Type = `Trial Pipeline`  
+  - Usage Type = `Pipeline Usage`  
 
 **CodeBuild:**
 
 - Общий Usage Type сборки:  
-  - Sub Type = `Build`
-  - Usage Type = `Build Usage` (или `Build Minutes`)
+  - Sub Type = `Build`  
+  - Usage Type = `Build Usage` (или `Build Minutes`)  
 
 Видно, что в Developer Tools платим либо за использование пайплайна или сборки, либо за налог, что позволяет потом отдельно проанализировать стоимость CI/CD.
 
@@ -273,11 +291,13 @@
 ## 3. Основная выявленная закономерность и итог
 
 Во всей работе соблюдалось основное правило: **один и тот же Product Code всегда относится к одним и тем же IT Tower и Service Family**.  
+
 - Если строки про S3 — это всегда Storage / Storage&Content Delivery.  
 - Если строки про Redshift — это всегда Cloud Services / Analytics.  
 - Если строки про Translate или ML — всегда Cloud Services / Artificial Intelligence и т.д.
 
-Благодаря такой закономерность модель получилась устойчивой. К ней можно вернуться и добавить новые Usage Type, но верхние уровни (такие как башня, семейство, сервис) останутся такими же. 
+Благодаря этой закономерности модель получилась устойчивой. К ней можно вернуться и добавить новые Usage Type, но верхние уровни (такие как башня, семейство, сервис) останутся такими же.  
 
-В итоге весь набор строк из слепка биллинга был переведён из низкоуровневых кодов в понятную модель с уровнями: IT Tower → Service Family → Service Type → Service Sub Type → Service Usage Type. Для каждого сервиса были осмысленно выбраны башня и семейство (Storage, Analytics, Developer Tools, Artificial Intelligence, Security and Identity и т.д.), ну а Usage Type аккуратно разложен на подтипы и виды потребления (хранение, запросы, штрафы, минуты вычислений, сообщения, налоги).​
-Аналитически эта работа дала понимание, какие именно ресурсы реально потребляются. Также стало видно, что, например, по S3 значимая часть затрат может приходиться не “чисто на хранение”, как я могла бы подумать, а на запросы и Early Delete, а по аналитике на типы узлов и объём сканируемых данных. ПРи помощи получившийся модели мы можем смотреть на биллинг как бы “от большего к меньшему”, начиная от крупных башен (Storage, Cloud Services) и заканчивая конкретными типами использования (Requests Tier3, Early Delete Fee, Model Training и т.п.).
+В итоге весь набор строк из слепка биллинга был переведён из низкоуровневых кодов в понятную модель с уровнями: IT Tower → Service Family → Service Type → Service Sub Type → Service Usage Type. Для каждого сервиса были осмысленно выбраны башня и семейство (Storage, Analytics, Developer Tools, Artificial Intelligence, Security and Identity и т.д.), ну а Usage Type аккуратно разложен на подтипы и виды потребления (хранение, запросы, штрафы, минуты вычислений, сообщения, налоги).  
+
+Аналитически эта работа дала понимание, какие именно ресурсы реально потребляются. Стало видно, что, например, по S3 значимая часть затрат может приходиться не «чисто на хранение», как можно было бы подумать, а на запросы и Early Delete, а по аналитике — на типы узлов и объём сканируемых данных. С помощью получившейся модели можно смотреть на биллинг «от большего к меньшему», начиная от крупных башен (Storage, Cloud Services) и заканчивая конкретными типами использования (Requests Tier3, Early Delete Fee, Model Training и т.п.), и при этом понимать, какие российские облачные сервисы примерно соответствуют каждому AWS‑сервису.
