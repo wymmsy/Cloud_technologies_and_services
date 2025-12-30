@@ -14,6 +14,10 @@
 
 В ЛР2 задача была просмотреть строки Azure‑биллинга (Meter Category, Meter Sub‑Category, Meter Name, Consumed Service и т.д.) и для каждой строки записать те же пять классификационных колонок, придерживаясь принципов ЛР1.
 
+Фрагмент заполненной таблицы из ЛР1:
+
+<img width="1661" height="754" alt="Снимок экрана 2025-12-30 161653" src="https://github.com/user-attachments/assets/415e9fde-2444-4c62-a2de-ded3d8c0583c" />
+
 ***
 
 ## 2. Analysis Services: аналитика в башне Cloud Services
@@ -27,6 +31,8 @@ Azure Analysis Services — это управляемый аналитическ
 - Meter Sub-Category: `Tabular`  
 - Meter Name: `Standard S%`, `Basic B%`, `Developer (Hours)` и т.д.
 
+<img width="1544" height="132" alt="Снимок экрана 2025-12-30 162048" src="https://github.com/user-attachments/assets/7f403a80-c156-4730-b5a2-aee61606f93a" />
+
 В ЛР1 все большие аналитические сервисы (Redshift, возможно EMR и прочие) я относила в IT Tower `Cloud Services` и в Service Family `Analytics`, потому что это не голый compute, а готовый аналитический сервис. Ровно так же Analysis Services — это не ВМ с SQL, а готовый OLAP/табличный движок.
 
 Поэтому для всех строк Analysis Services я сделала:
@@ -37,6 +43,8 @@ Azure Analysis Services — это управляемый аналитическ
   Сервис предназначен для аналитики, моделей данных и отчётности; логично ставить его в тот же Analytics, где у меня в AWS сидели Redshift и прочие аналитические штуки.  
 - Service Type: `Azure Analysis Services`  
   Здесь логика простая: в AWS я в Service Type писала конкретное имя сервиса (Amazon S3, Amazon EC2), поэтому в Azure делаю так же — тут это Azure Analysis Services.
+
+<img width="1542" height="128" alt="Снимок экрана 2025-12-30 162127" src="https://github.com/user-attachments/assets/d7577dc8-f644-470a-b7ba-003bf1fe1bf0" />
 
 Дальше я смотрела на SKU:
 
@@ -59,6 +67,8 @@ Azure Analysis Services — это управляемый аналитическ
   - Basic: `Basic Instance Hours`  
   - Standard: `Standard Instance Hours`  
   - Developer: `Developer Instance Hours`
+
+<img width="1537" height="126" alt="Снимок экрана 2025-12-30 162158" src="https://github.com/user-attachments/assets/3bd614e5-73e9-4a68-86ae-ed15726247be" />
 
 То есть Usage Type фиксирует, что платится за время работы конкретного уровня Analysis Services, а Sub Type — какой именно это уровень.
 
@@ -87,6 +97,8 @@ Azure Data Factory — это облачный сервис интеграции
 - Service Family: `Analytics`  
 - Service Type: `Azure Data Factory`
 
+<img width="1453" height="199" alt="image" src="https://github.com/user-attachments/assets/dbf640a4-190b-4b33-b4ac-bf3c561b819a" />
+
 Дальше я разделила подтипы по типу рантайма и типу операции:
 
 - Для `Data Movement Self Hosted IR`:  
@@ -114,14 +126,18 @@ Azure Data Factory — это облачный сервис интеграции
 - Service Sub Type: `Data Factory v2`  
 - Service Usage Type: `General Usage`
 
+<img width="1587" height="196" alt="Снимок экрана 2025-12-30 162432" src="https://github.com/user-attachments/assets/840e16e9-d92a-4ce3-8997-b9f00039eb94" />
+
 чтобы не оставлять пустые значения и обозначить, что это категория «прочее использование» Data Factory.
 
-### 3.2. Data Factory в категории Business Analytics: Cloud / On Prem Data Movement
+### 3.2. Data Factory в категории Business Analytics: Cloud / Data Movement On Premises
 
 Отдельно были строки в `Meter Category = Business Analytics`, `Meter Sub-Category = Data Factory`, `Meter Name`:
 
 - `Data Movement Cloud`  
 - `Data Movement On Premises`
+
+<img width="1695" height="105" alt="Снимок экрана 2025-12-30 162703" src="https://github.com/user-attachments/assets/b2d16e83-abf2-4950-8372-f4307e2de666" />
 
 С точки зрения модели это всё тот же Data Factory, просто биллинг вынесен в категорию Business Analytics.
 
@@ -130,6 +146,8 @@ Azure Data Factory — это облачный сервис интеграции
 - IT Tower: `Cloud Services`  
 - Service Family: `Analytics`  
 - Service Type: `Azure Data Factory`
+
+<img width="1697" height="105" alt="Снимок экрана 2025-12-30 162712" src="https://github.com/user-attachments/assets/4d2a1dd5-a742-4399-868a-88fa47362342" />
 
 А на уровне Sub Type и Usage Type ещё раз зафиксировала, где крутится интеграционный рантайм:
 
@@ -140,6 +158,8 @@ Azure Data Factory — это облачный сервис интеграции
 - `Data Movement On Premises`:  
   - Service Sub Type: `On-Premises Data Movement`  
   - Service Usage Type: `Data Movement`
+
+<img width="1694" height="105" alt="Снимок экрана 2025-12-30 162719" src="https://github.com/user-attachments/assets/a79eb9a5-fb6a-411b-aec8-3e7b34ac7def" />
 
 Таким образом, можно будет отдельно смотреть cloud и on‑prem движение данных.
 
@@ -154,6 +174,8 @@ Azure Database for PostgreSQL / MySQL — это управляемые базы
 - Meter Category: `Azure Database for PostgreSQL`  
 - Consumed Service: `Microsoft.DBforPostgreSQL` и `Microsoft.DBforMySQL`
 
+<img width="1695" height="105" alt="Снимок экрана 2025-12-30 162902" src="https://github.com/user-attachments/assets/a42cde92-3c29-4d40-8050-d963950cb9db" />
+
 В ЛР1 все управляемые СУБД (Amazon RDS) у меня были в IT Tower `Cloud Services`, Service Family `Database`. Это платформенные сервисы, где администрирование, патчи и часть инфраструктуры скрыты от пользователя. Поэтому:
 
 - IT Tower: `Cloud Services`  
@@ -162,10 +184,14 @@ Azure Database for PostgreSQL / MySQL — это управляемые базы
   - для MySQL: `Azure Database for MySQL`  
   - для PostgreSQL: `Azure Database for PostgreSQL`
 
+<img width="1695" height="107" alt="Снимок экрана 2025-12-30 162910" src="https://github.com/user-attachments/assets/ee01d879-a333-4dc2-890b-6d3d76a5bc9e" />
+
 Дальше я смотрела на Meter Sub-Category и Meter Name: там, как правило, фигурируют типы производительности (Basic, General Purpose, vCore) и компоненты (`Compute`, `Storage`, `Backup Storage`). В тех строках, которые были только про compute‑часть, я сделала:
 
 - Service Sub Type: `Compute` (или, если явно указана общая категория, `General Purpose`)  
 - Service Usage Type: `vCore Hours` или обобщённо `Database Instance Hours`
+
+<img width="1694" height="107" alt="Снимок экрана 2025-12-30 162919" src="https://github.com/user-attachments/assets/a170a22d-a227-4af3-a663-55ae1b94ca8d" />
 
 Так модели видно, что это именно часы работы инстанса БД.
 
@@ -182,11 +208,15 @@ Azure Redis Cache — это управляемый кластер Redis в об
 - Meter Name: варианты с `C%` / `Cache`  
 - Consumed Service: `Microsoft.Cache`
 
+<img width="1695" height="107" alt="Снимок экрана 2025-12-30 163046" src="https://github.com/user-attachments/assets/15094412-a4dd-4c1d-bcd2-f8c11758de22" />
+
 В ЛР1 кэш‑сервисы обычно висели рядом с базами (как in‑memory базы), поэтому логично поместить Redis в `Cloud Services / Database`. Так я и сделала:
 
 - IT Tower: `Cloud Services`  
 - Service Family: `Database`  
 - Service Type: `Azure Redis Cache`
+
+<img width="1697" height="104" alt="Снимок экрана 2025-12-30 163122" src="https://github.com/user-attachments/assets/64d50480-b9bc-4aa0-ac6f-605e4d6a38ad" />
 
 Meter Sub-Category `C%` — это серия кластера; в AWS я серии EC2 отражала в Service Sub Type (например, M5, C5).
 
@@ -197,6 +227,8 @@ Meter Sub-Category `C%` — это серия кластера; в AWS я сер
 Usage Type практически везде означал, что мы платим за время работы кэш‑инстанса:
 
 - Service Usage Type: `Cache Instance Hours`
+
+<img width="1694" height="104" alt="Снимок экрана 2025-12-30 163131" src="https://github.com/user-attachments/assets/9db44b51-2af3-41af-a7d3-78aa7ea5a38c" />
 
 Отдельные строки, где Meter Name выглядел просто как `Cache` или немного по‑другому, я всё равно считала за часы работы кэша и не вводила новые Usage Type, чтобы не распылять аналитику.
 
@@ -223,6 +255,8 @@ Azure Batch — сервис, который массово запускает �
 - Service Sub Type: `Reserved Batch` или `Batch Reservation`  
 - Service Usage Type: `License` / `Reservation License`
 
+<img width="1697" height="85" alt="Снимок экрана 2025-12-30 163447" src="https://github.com/user-attachments/assets/385e79b2-e0ca-411e-a62d-72c813379155" />
+
 То есть это специфический тип потребления compute‑сервиса: лицензия или резервация.
 
 ### 6.2. Cloud Services A/D/F/G/H/N‑series, Compute Hours
@@ -236,6 +270,8 @@ Azure Batch — сервис, который массово запускает �
 - Meter Name: `Compute Hours`  
 - Consumed Service: `Compute`
 
+<img width="1692" height="201" alt="Снимок экрана 2025-12-30 163537" src="https://github.com/user-attachments/assets/8f7744d0-4d2a-413c-8052-c8ac9c50f184" />
+
 Это явные аналоги EC2 — вычислительные часы разных серий VM. В ЛР1 были EC2 и похожие вещи:
 
 - IT Tower: `Compute`  
@@ -247,6 +283,8 @@ Azure Batch — сервис, который массово запускает �
 - IT Tower: `Compute`  
 - Service Family: `Compute`  
 - Service Type: `Azure Compute`
+
+<img width="1693" height="202" alt="Снимок экрана 2025-12-30 163543" src="https://github.com/user-attachments/assets/3a6241bc-d070-4e1a-a1a9-e1350abdbb38" />
 
 А серии вынесла в Service Sub Type:
 
@@ -260,6 +298,8 @@ Azure Batch — сервис, который массово запускает �
 Во всех этих строках Usage Type одинаковый:
 
 - Service Usage Type: `Compute Hours`
+
+<img width="1694" height="199" alt="Снимок экрана 2025-12-30 163551" src="https://github.com/user-attachments/assets/7b791d94-22d0-4d56-87d3-f742e91dda10" />
 
 Таким образом, можно сравнивать общие compute‑часы между AWS и Azure, не привязываясь к конкретным буквенным обозначениям, но сохраняя их в Sub Type для детализации.
 
@@ -280,6 +320,8 @@ Azure Scheduler — это сервис, который по расписани�
   - `Standard Unit`  
 - Consumed Service: `Microsoft.Scheduler`
 
+<img width="1612" height="152" alt="Снимок экрана 2025-12-30 163927" src="https://github.com/user-attachments/assets/78f2152e-b3e7-46bc-bcd5-62fdec21458d" />
+
 Здесь я вспомнила свою схему ЛР1, в которой я все системные или управляющие сервисы (мониторинг, планировщики, EventBridge, CloudWatch и т.п.) относила в `Cloud Services / Management Tools`.
 
 Поэтому:
@@ -287,6 +329,8 @@ Azure Scheduler — это сервис, который по расписани�
 - IT Tower: `Cloud Services`  
 - Service Family: `Management Tools`  
 - Service Type: `Azure Scheduler`
+
+<img width="1613" height="152" alt="Снимок экрана 2025-12-30 163934" src="https://github.com/user-attachments/assets/1e6875a3-78c8-4680-80c9-bf883bfcefaf" />
 
 Sub Type логично оставить общим:
 
@@ -299,6 +343,8 @@ Sub Type логично оставить общим:
 
 - Строки с `Standard Scheduler Units` и `Standard Unit`:  
   - Service Usage Type: `Standard Scheduler Units`
+
+<img width="1613" height="154" alt="Снимок экрана 2025-12-30 163941" src="https://github.com/user-attachments/assets/9279ad3a-c342-4bf4-b9c8-9af6aaaae4c9" />
 
 Таким образом, в аналитике видно, сколько потреблялось платных Scheduler Units, а сколько — бесплатных.
 
@@ -315,11 +361,15 @@ Azure CDN — это сеть доставки контента: кэширов�
 
 В ЛР1 S3 и CloudFront я относила к `Storage` и в подсемейство `Storage&Content Delivery`, потому что основная идея — это хранение и доставка контента, а не вычисления. Чтобы сравнение AWS/Azure было честным, Azure CDN я точно так же поместила в Storage.
 
+<img width="1611" height="103" alt="Снимок экрана 2025-12-30 164122" src="https://github.com/user-attachments/assets/69b7986c-d241-4cd8-adca-25180926f109" />
+
 Для обеих строк:
 
 - IT Tower: `Storage`  
 - Service Family: `Storage&Content Delivery`  
 - Service Type: `Azure CDN`
+
+<img width="1613" height="100" alt="Снимок экрана 2025-12-30 164129" src="https://github.com/user-attachments/assets/a0fed39f-a66a-4982-8822-a3644cec8317" />
 
 Дальше:
 
@@ -330,6 +380,8 @@ Azure CDN — это сеть доставки контента: кэширов�
 - Для общей Data Transfer строки:  
   - Service Sub Type: `Azure CDN` (общее)  
   - Service Usage Type: `Data Transfer`
+
+<img width="1609" height="105" alt="Снимок экрана 2025-12-30 164136" src="https://github.com/user-attachments/assets/e43f8c9f-71df-46b7-9b1d-5c55f6842c46" />
 
 То есть везде Usage Type показывает трафик, а Sub Type — конкретный уровень CDN или просто сам факт, что это Azure CDN.
 
@@ -354,7 +406,9 @@ Azure Data Box — это физическое устройство от Microso
 - Service Sub Type: `Data Box Device`  
 - Service Usage Type: `Device Usage` или `Transfer Service`
 
-Так в аналитике видно, что это не место хранения, а сервис физического переноса.
+<img width="1610" height="78" alt="Снимок экрана 2025-12-30 164310" src="https://github.com/user-attachments/assets/c136e443-4aae-4143-a9c1-0b0ff7ffdd73" />
+
+Так в аналитике видно, что это сервис физического переноса.
 
 ***
 
@@ -362,7 +416,7 @@ Azure Data Box — это физическое устройство от Microso
 
 Azure Key Vault — это сервис для хранения ключей шифрования, секретов, сертификатов и управления доступом к ним. Его используют, чтобы не хранить пароли/ключи в коде и централизованно управлять шифрованием. Аналоги в российских облаках — **Yandex Lockbox + Managed KMS**, решения по управлению секретами в VK Cloud, а также HashiCorp Vault, развёрнутый в российских дата‑центрах.  
 
-Строки по Key Vault имели:
+Единственная строка по Key Vault:
 
 - Meter Category: `Key Vault`  
 - Consumed Service: `Microsoft.KeyVault`
@@ -378,6 +432,8 @@ Azure Key Vault — это сервис для хранения ключей ш�
 - Service Sub Type: `Key Vault`  
 - Service Usage Type: `Operations`
 
+<img width="1610" height="80" alt="Снимок экрана 2025-12-30 164731" src="https://github.com/user-attachments/assets/2801df26-325a-4eae-a3a7-2d896dd54140" />
+
 Если бы были отдельные строки явно про storage, можно было бы добавить второй Usage Type типа `Key Storage`, но в рамках этой выборки достаточно обобщить.
 
 ---
@@ -392,6 +448,8 @@ Microsoft Sentinel — облачный SIEM‑сервис: собирает л
 - Meter Name: `Free Trial`, `Analysis`  
 - Consumed Service: `microsoft.operationalinsights`
 
+<img width="1611" height="107" alt="Снимок экрана 2025-12-30 164523" src="https://github.com/user-attachments/assets/ca4ac09f-cb7b-40ea-8362-b0959415f37e" />
+
 Sentinel — это облачный SIEM‑сервис безопасности, который использует Log Analytics как backend. В ЛР1 всё подобное у меня жило в `Cloud Services / Security and Identity`.
 
 Поэтому для обоих вариантов:
@@ -399,6 +457,8 @@ Sentinel — это облачный SIEM‑сервис безопасност�
 - IT Tower: `Cloud Services`  
 - Service Family: `Security and Identity`  
 - Service Type: `Microsoft Sentinel`
+
+<img width="1612" height="104" alt="Снимок экрана 2025-12-30 164532" src="https://github.com/user-attachments/assets/754de9c3-0109-4ef5-9fa8-3a03d906e65f" />
 
 Дальше, по Meter Name:
 
@@ -409,6 +469,8 @@ Sentinel — это облачный SIEM‑сервис безопасност�
 - `Analysis`:  
   - Service Sub Type: `Sentinel Analytics`  
   - Service Usage Type: `Analytics Data`
+
+<img width="1610" height="112" alt="Снимок экрана 2025-12-30 164541" src="https://github.com/user-attachments/assets/09fd431c-d938-4ecb-8a32-76cd65ea9181" />
 
 Таким образом, видно, какие расходы относятся к пробному периоду, а какие — к реальному анализу данных.
 
@@ -435,3 +497,4 @@ Sentinel — это облачный SIEM‑сервис безопасност�
 - Сервисы управления и безопасности (Scheduler, Key Vault, Sentinel) попали в `Cloud Services / Management Tools` и `Cloud Services / Security and Identity`, как соответствующие AWS‑аналоги.  
 
 Благодаря этому можно строить кросс‑провайдерные отчёты не по сырому «Meter Category» или «Consumed Service», а по своей унифицированной модели. Например, сравнивать суммарные расходы на `Compute`, `Storage&Content Delivery`, `Analytics`, `Database`, `Security and Identity` сразу по двум вендорам, не задумываясь о том, как именно провайдер назвал тот или иной сервис в биллинге. Одновременно из текста видно, какие российские облачные сервисы примерно соответствуют каждому Azure‑сервису, так что модель легко переносится и в российский контекст.
+
