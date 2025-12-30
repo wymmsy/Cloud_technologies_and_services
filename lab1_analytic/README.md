@@ -23,6 +23,8 @@ Amazon S3 — это объектное хранилище файлов и да�
 
 Таким образом, для AmazonS3 я сначала зафиксировала три верхних уровня: Storage → Storage&Content Delivery → Amazon S3. А уже потом внутри этой группы разбирала, что именно делает каждая строка Usage Type.
 
+<img width="1484" height="320" alt="Снимок экрана 2025-12-30 160929" src="https://github.com/user-attachments/assets/788c56d3-cf5b-4780-ba8c-6bf59031a63b" />
+
 ### 2) AmazonGlacier
  
 Amazon Glacier — это архивное («холодное») хранилище: туда кладут данные, к которым почти не обращаются, зато хранить их очень дёшево. Обычно это долгосрочные бэкапы, журналы, архивы. В российских облаках похожие возможности дают **«холодные»/архивные классы хранения в объектных хранилищах** (например, холодное хранилище в Яндекс Облаке или архивные классы в VK Cloud).  
@@ -34,6 +36,8 @@ Amazon Glacier — это архивное («холодное») хранили
 5. **Service Type** — `Amazon Glacier`, чтобы отделить его от S3, хотя они в одной башне и одной семье.  
 
 Так появилась вторая ветка в модели: Storage → Storage&Content Delivery → Amazon Glacier.
+
+<img width="1489" height="178" alt="Снимок экрана 2025-12-30 161002" src="https://github.com/user-attachments/assets/6e6ba55a-b54a-4cc0-beda-e0a11baae740" />
 
 ### 3) AmazonRedshift
  
@@ -47,6 +51,8 @@ Amazon Redshift — это облачное аналитическое хран�
 
 Получилась ветка Cloud Services → Analytics → Amazon Redshift.
 
+<img width="1489" height="176" alt="Снимок экрана 2025-12-30 161029" src="https://github.com/user-attachments/assets/aa9ac627-2473-4ac6-b915-bb57ef76a3e3" />
+
 ### 4) AWSDirectoryService
 
 AWS Directory Service — это управляемый сервис каталогов: фактически Active Directory в облаке или коннектор к уже существующему AD. Он нужен для аутентификации пользователей и интеграции приложений с доменной инфраструктурой. В российских облаках ближайшие аналоги — **Managed Microsoft AD в VK Cloud**, сервисы управляемого AD у крупных провайдеров, а также локально развёрнутый AD как услуга в дата‑центрах.  
@@ -59,6 +65,8 @@ AWS Directory Service — это управляемый сервис катал�
 
 Снова добавила ветку: Cloud Services → Security and Identity → AWS Directory Service.
 
+<img width="1487" height="174" alt="Снимок экрана 2025-12-30 161057" src="https://github.com/user-attachments/assets/fd3857a9-6ddc-47e0-8f59-119294c55e8d" />
+
 ### 5) AmazonSNS
   
 Amazon SNS — это сервис уведомлений и рассылок: он умеет отправлять сообщения по HTTP(S), в очереди SQS, по e‑mail, SMS и push‑уведомления. Нужен, чтобы приложения могли быстро и надёжно «рассылать» события по разным каналам. В российских облаках есть похожий функционал в виде **Message Queue / Notification Service в VK Cloud**, **Yandex Message Queue + уведомления через связанные сервисы**, а также интеграции с внешними SMS‑/push‑провайдерами.  
@@ -70,6 +78,8 @@ Amazon SNS — это сервис уведомлений и рассылок: �
 5. В **Service Type** записала `Amazon SNS`.
 
 Получилась ветка Cloud Services → Application Services → Amazon SNS.
+
+<img width="1491" height="178" alt="Снимок экрана 2025-12-30 161124" src="https://github.com/user-attachments/assets/cc9dae4a-d8c6-4396-bc43-c427ef148c0c" />
 
 ### 6) AmazonML, Translate, Transcribe, Polly
 
@@ -90,6 +100,8 @@ Amazon SNS — это сервис уведомлений и рассылок: �
 
 В модели появилась ветка Cloud Services → Artificial Intelligence → (конкретные AI‑сервисы).
 
+<img width="1485" height="199" alt="Снимок экрана 2025-12-30 161156" src="https://github.com/user-attachments/assets/3f27309b-22be-47b9-a840-6e9dfb447764" />
+
 ### 7) AWSCodePipeline и CodeBuild
  
 AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD: CodePipeline собирает «цепочку» шагов (сборка, тесты, деплой), а CodeBuild отвечает за саму сборку кода. Нужны они, чтобы автоматизировать поставку приложений. В российских облаках похожие вещи есть в виде **Yandex Cloud Deploy / Managed GitLab**, **VK Cloud DevOps**, а также managed‑инстансов GitLab/Jenkins.  
@@ -102,6 +114,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
    - **Service Type** = `AWS CodePipeline` или `AWS CodeBuild`
 
 Эта ветка описывает блок сервисов, которые помогают строить и разворачивать приложения: Cloud Services → Developer Tools → (CodePipeline/CodeBuild).
+
+<img width="1485" height="130" alt="Снимок экрана 2025-12-30 161230" src="https://github.com/user-attachments/assets/054f2c26-c967-406c-a5e3-c4151697c167" />
 
 ***
 
@@ -133,6 +147,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Главный принцип: Sub Type показывает, что именно внутри сервиса, а Usage Type — какой ресурс или операция оплачивается (хранение, запросы, штрафы и т.д.).
 
+<img width="1559" height="321" alt="Снимок экрана 2025-12-30 155943" src="https://github.com/user-attachments/assets/ea3224c3-0805-44ae-88cb-9b3b71fd89cb" />
+
 ### 2) Внутри AmazonGlacier
 
 1. Для AmazonGlacier Usage Type были `ProvisionedCapacityUnit`, `TimedStorage-ByteHrs`, `Requests-Tier1/3`, `EarlyDelete`.  
@@ -156,6 +172,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Здесь видно, что один и тот же подтип (Archive Storage) может давать как обычное хранение, так и штрафы.
 
+<img width="1564" height="176" alt="Снимок экрана 2025-12-30 160040" src="https://github.com/user-attachments/assets/33c31814-e1c5-4fd2-b1e9-277dccebbc3a" />
+
 ### 3) Внутри AmazonRedshift
 
 1. В Redshift Usage Type вида `Node:ra`, `Node:dc`, `Node:ds` показывали разные типы узлов кластера.  
@@ -172,6 +190,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
    - Usage Type = `Service Fee`  
 
 Так в модели раздельно видны затраты на «железо» (узлы), на «работу запросов» (сканирование данных) и на «служебные сервисы».
+
+<img width="1562" height="170" alt="Снимок экрана 2025-12-30 160126" src="https://github.com/user-attachments/assets/bc49052c-dca8-472c-8e70-4cc2c72b29a4" />
 
 ### 4) Внутри AWSDirectoryService
 
@@ -200,6 +220,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Здесь Sub Type показывает, какой именно продукт каталога используется, а Usage Type — что именно считается, это может быть использование каталога, использование коннектора или налог.
 
+<img width="1559" height="172" alt="Снимок экрана 2025-12-30 160200" src="https://github.com/user-attachments/assets/328c7765-dbf8-4d21-a870-a19202d8e294" />
+
 ### 5) Внутри AmazonSNS
 
 1. В SNS Usage Type сразу показывали каналы доставки и тип расхода: DeliveryAttempts-HTTP, DeliveryAttempts-SQS, SMS-Price, SMS-Sent, DeliveryAttempts-APNS.  
@@ -227,6 +249,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Так мы чётко разделяем, где платим за попытки доставки, а где за сами SMS, и какими каналами сообщения идут.
 
+<img width="1557" height="174" alt="Снимок экрана 2025-12-30 160231" src="https://github.com/user-attachments/assets/e91a8915-f557-48d0-a2cf-d38f91f98d1f" />
+
 ### 6) Внутри AmazonML
 
 1. Для AmazonML Usage Type в обеих строках был `%AMLBoxUsage`, но в Operation появлялись `TrainModel` и `EvaluateModel`.  
@@ -239,6 +263,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
      - Usage Type = `ML Box Usage`  
 
 Это показывает, что расходуется один и тот же ресурс (ML Box), но на разных этапах — обучение и оценка.
+
+<img width="1560" height="100" alt="image" src="https://github.com/user-attachments/assets/fa331e1c-988c-4e4b-8da1-c26b7bbcf881" />
 
 ### 7) Внутри Translate, Transcribe и Polly
 
@@ -266,6 +292,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Здесь я увидела одну идею: Sub Type различает задачу (например, перевод текста, стримовое распознавание, пакетное, синтез речи) и Usage Type — “единицу измерения” (символы, минуты аудио, количество запросов).
 
+<img width="1563" height="148" alt="image" src="https://github.com/user-attachments/assets/23665639-1a83-41da-9fbf-a82ee8846703" />
+
 ### 8) Внутри CodePipeline и CodeBuild
 
 **CodePipeline:**
@@ -286,6 +314,8 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 
 Видно, что в Developer Tools платим либо за использование пайплайна или сборки, либо за налог, что позволяет потом отдельно проанализировать стоимость CI/CD.
 
+<img width="1559" height="126" alt="image" src="https://github.com/user-attachments/assets/47634763-2818-4632-8828-6a839747f77f" />
+
 ***
 
 ## 3. Основная выявленная закономерность и итог
@@ -301,3 +331,4 @@ AWS CodePipeline и AWS CodeBuild — это инструменты для CI/CD
 В итоге весь набор строк из слепка биллинга был переведён из низкоуровневых кодов в понятную модель с уровнями: IT Tower → Service Family → Service Type → Service Sub Type → Service Usage Type. Для каждого сервиса были осмысленно выбраны башня и семейство (Storage, Analytics, Developer Tools, Artificial Intelligence, Security and Identity и т.д.), ну а Usage Type аккуратно разложен на подтипы и виды потребления (хранение, запросы, штрафы, минуты вычислений, сообщения, налоги).  
 
 Аналитически эта работа дала понимание, какие именно ресурсы реально потребляются. Стало видно, что, например, по S3 значимая часть затрат может приходиться не «чисто на хранение», как можно было бы подумать, а на запросы и Early Delete, а по аналитике — на типы узлов и объём сканируемых данных. С помощью получившейся модели можно смотреть на биллинг «от большего к меньшему», начиная от крупных башен (Storage, Cloud Services) и заканчивая конкретными типами использования (Requests Tier3, Early Delete Fee, Model Training и т.п.), и при этом понимать, какие российские облачные сервисы примерно соответствуют каждому AWS‑сервису.
+
