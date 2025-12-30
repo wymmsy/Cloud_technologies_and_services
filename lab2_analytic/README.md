@@ -435,6 +435,3 @@ Sentinel — это облачный SIEM‑сервис безопасност�
 - Сервисы управления и безопасности (Scheduler, Key Vault, Sentinel) попали в `Cloud Services / Management Tools` и `Cloud Services / Security and Identity`, как соответствующие AWS‑аналоги.  
 
 Благодаря этому можно строить кросс‑провайдерные отчёты не по сырому «Meter Category» или «Consumed Service», а по своей унифицированной модели. Например, сравнивать суммарные расходы на `Compute`, `Storage&Content Delivery`, `Analytics`, `Database`, `Security and Identity` сразу по двум вендорам, не задумываясь о том, как именно провайдер назвал тот или иной сервис в биллинге. Одновременно из текста видно, какие российские облачные сервисы примерно соответствуют каждому Azure‑сервису, так что модель легко переносится и в российский контекст.
-[25](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/153328271/91a7ff97-ef99-4461-bd16-75aff8579116/image.jpg)
-[26](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/153328271/69c1b36a-943f-4a0b-82f8-b021051b7993/image.jpg)
-[27](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/images/153328271/45816e11-6cd7-4380-be6f-5736c45d7e0f/image.jpg)
