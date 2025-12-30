@@ -1,21 +1,30 @@
 ## Лабораторная работа 2*
 
 К имеющимся во 2 лабораторной работе файлам я добавила следующие:
+<img width="615" height="70" alt="Снимок экрана 2025-12-24 162615" src="https://github.com/user-attachments/assets/aeb6f726-4aa1-476d-98e5-0dd8c8c82520" />
+
 
 В docker‑compose части у меня в итоге получилось 4 bad practice, и каждая из них исправлена в «хорошем» файле.
 
 ### 1. Использование latest вместо фиксированных версий образов
-В плохом файле (docker-compose.bad.yml):
+В плохом файле `(docker-compose.bad.yml)`:
+
+<img width="647" height="614" alt="Снимок экрана 2025-12-24 161348" src="https://github.com/user-attachments/assets/ae13e44b-a67d-436d-a8bd-c2ef47482ee5" />
 
 Для всех сервисов указаны образы без конкретных версий:
-image: nginx:latest, image: postgres:latest, image: redis:latest.
+- `image: nginx:latest, image: postgres:latest, image: redis:latest`.
 ​
 Такая запись делает сборки непредсказуемыми, при любом обновлении образа конфигурация может ломаться без изменения compose файла, и воспроизвести старое состояние будет сложно.
 
-В хорошем файле (docker-compose.good.yml):
+В хорошем файле (`docker-compose.good.yml`):
+
+<img width="612" height="588" alt="Снимок экрана 2025-12-25 024652" src="https://github.com/user-attachments/assets/9e04b767-1737-40f1-b565-706cf3f19291" />
+
+<img width="610" height="331" alt="Снимок экрана 2025-12-25 024701" src="https://github.com/user-attachments/assets/268c118c-2e3a-4e95-8b1c-edc3fa7639c0" />
 
 Для каждого сервиса указаны конкретные теги:
-docker.io/nginx:1.25-alpine, docker.io/postgres:15-alpine, docker.io/redis:7-alpine.
+
+`docker.io/nginx:1.25-alpine, docker.io/postgres:15-alpine, docker.io/redis:7-alpine`.
 ​
 
 Так мы фиксируем версию и делаем деплой воспроизводимым: одно и то же состояние можно восстановить на разных машинах, и обновления образов будут осознанными, только через явное изменение тега в YAML.
@@ -23,70 +32,76 @@ docker.io/nginx:1.25-alpine, docker.io/postgres:15-alpine, docker.io/redis:7-alp
 ### 2. Хранение паролей и строк подключения в YAML
 В плохом файле:
 
-Пароли и параметры доступа к БД прописаны прямо в environment:
+- Пароли и параметры доступа к БД прописаны прямо в `environment`:
 
-text
+```yaml
 environment:
   POSTGRES_PASSWORD: qwerty123
   POSTGRES_USER: admin
   POSTGRES_DB: mydb
-а в web вся строка подключения с паролем зашита в DB_URL.
+```
+а в web вся строка подключения с паролем зашита в `DB_URL`.
 ​
 
-В Redis пароль передаётся в command:
-command: redis-server --requirepass "simplepass".
+- В Redis пароль передаётся в `command`:
+`command: redis-server --requirepass "simplepass"`.
 ​
 
 Такой подход небезопасный, так как вся конфиденциальная информация попадает в git‑репозиторий, в историю и так далее, их сложнее менять, становится высоким риск утечки.
 
 В хорошем файле:
 
-Вместо конкретных значений используются ссылки на переменные окружения:
+- Вместо конкретных значений используются ссылки на переменные окружения:
 
-text
+``` yaml
 environment:
   POSTGRES_PASSWORD: ${DB_PASSWORD}
   POSTGRES_USER: ${DB_USER}
   POSTGRES_DB: ${DB_NAME}
-а Redis получает пароль из ${REDIS_PASSWORD}.
+```
+а Redis получает пароль из `${REDIS_PASSWORD}`.
 ​
 
-Значения заданы в отдельном .env‑файле (или через переменные окружения при запуске), который можно не коммитить в репозиторий.
+- Значения заданы в отдельном `.env`‑файле (или через переменные окружения при запуске), который можно не коммитить в репозиторий.
 
 Так мы повысили безопасность и упростили себе настройку разных окружений (локально, на сервере, у коллеги) без изменения compose‑файла.
 
 ### 3. Некорректная политика рестарта и отсутствие healthcheck
 В плохом файле:
 
-Для web‑сервиса указано restart: always, у остальных сервисов вообще нет healthcheck.
+- Для web‑сервиса указано `restart: always`, у остальных сервисов вообще нет `healthcheck`.
 ​
 
 restart: always 
 Чтобы контейнер бесконечно перезапускалсяся даже при ошибке конфигурации или падении приложения, а тем временм внешне будет казаться, что всё номарльно работает.
 
-Отсутствие healthcheck означает, что orchestrator никак не отличает «живой, но не готовый» сервис от полностью рабочей БД или Redis.
+- Отсутствие `healthcheck` означает, что `orchestrator` никак не отличает «живой, но не готовый» сервис от полностью рабочей БД или Redis.
 
 В хорошем файле:
 
-Для сервисов используется более аккуратная политика restart: unless-stopped, которая перезапускает контейнеры при сбоях, но не мешает их явно останавливать при обслуживании.
+- Для сервисов используется более аккуратная политика `restart: unless-stopped`, которая перезапускает контейнеры при сбоях, но не мешает их явно останавливать при обслуживании.
 ​
 
-Для Postgres и Redis добавлены healthcheck‑и:
+- Для Postgres и Redis добавлены `healthcheck`‑и:
 
-text
+``` yaml
 healthcheck:
   test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d${DB_NAME}"]
   interval: 10s
   timeout: 5s
   retries: 3
+```
+
 и
 
-text
+``` yaml
 healthcheck:
   test: ["CMD", "redis-cli", "ping"]
   interval: 10s
   timeout: 3s
   retries: 3
+```
+
 Это позволяет compose (или аналогичному оркестратору) понимать, когда сервис действительно готов к работе, и при необходимости перезапускать его или не запускать зависящие сервисы, пока БД/Redis не поднялись.
 
 ### 4. Жёсткое пробрасывание портов без ограничения интерфейса
@@ -94,18 +109,22 @@ healthcheck:
 
 Web‑контейнер публикует порт как:
 
-text
+``` yaml
 ports:
   - "80:80"
+```
+
 Это открывает порт nginx на всех интерфейсах хоста, что для учебной/локальной конфигурации терпимо, но для прод‑подобной среды — рискованно.
 
 В хорошем файле:
 
 Порт ограничен loopback‑интерфейсом:
 
-text
+``` yaml
 ports:
   - "127.0.0.1:8080:80"
+```
+
 В результате веб‑интерфейс доступен только с локальной машины (или из виртуалки), что снижает поверхность атаки и лучше соответствует принципу минимально необходимого доступа.
 
 
@@ -113,31 +132,62 @@ ports:
 Сначала снова собрала и запустила плохой и хороший контейнеры.
 
 Запустила команду для сборки образа хорошего докерфайла
-docker build -f bad.Dockerfile -t lab2_bad_image .  
+`docker build -f bad.Dockerfile -t lab2_bad_image .`
 Потом у меня кончилась память на диске…. (он уже не выдерживает конец семестра)
 
+<img width="362" height="323" alt="Снимок экрана 2025-12-24 165001" src="https://github.com/user-attachments/assets/5e8c58f5-9239-4e8f-8171-0e4440c45726" />
 
 Освободила место и, победа, образ собрался.
+
+<img width="525" height="287" alt="Снимок экрана 2025-12-24 170252" src="https://github.com/user-attachments/assets/82b03a75-b41e-4cd5-89e1-61c37333c919" />
 
 Теперь все контейнеры запущены.
 Для выполнения части со звездочкой:
 
+<img width="619" height="651" alt="Снимок экрана 2025-12-25 025437" src="https://github.com/user-attachments/assets/3ea79251-9a3e-447e-bb6e-5ed5f29f96c8" />
 
-После sudo apt-get update:
+Здесь я столкнулась с проблемой.
+В используемой виртуальной машине (Linux Mint 22, Python 3.12) предустановленная утилита docker-compose не работает из‑за ошибки `ModuleNotFoundError: No module named 'distutils'`. 
 
-ЗДесь я столкнулась с проблемой.
-В используемой виртуальной машине (Linux Mint 22, Python 3.12) предустановленная утилита docker-compose не работает из‑за ошибки ModuleNotFoundError: No module named 'distutils'. Все мои попытки установить python3-distutils и docker-compose-plugin заканчивались поражением, так как эти пакеты отсутствуют в репозитории. Поэтому запуск сервисов я выполнила через отдельные команды docker run, а файлы docker-compose.bad.yml и docker-compose.good.yml использовала дальше как примеры неправильной и исправленной конфигурации.
 
-Запуск «ручного аналога» docker-compose.good.yml:
+ После я попыталась усановить `python3-disutils`:
+ 
+<img width="609" height="175" alt="Снимок экрана 2025-12-25 025811" src="https://github.com/user-attachments/assets/ffaedb2a-800c-46c6-b034-e6e362281fd2" />
 
+
+А потом `sudo apt-get update`:
+
+<img width="616" height="103" alt="Снимок экрана 2025-12-25 030227" src="https://github.com/user-attachments/assets/44ee037f-2311-4e1e-8bd0-7b5d82e132aa" />
+
+Таким образом, попытки доустановить пакеты `python3-distutils` и `docker-compose-plugin` оказались неудачными, так как из‑за в репозитории отсутствуют подходящие пакеты.
+
+
+<img width="791" height="600" alt="Снимок экрана 2025-12-25 023408" src="https://github.com/user-attachments/assets/404e5041-c61d-49da-a1ec-b9b58fc8c064" />
+
+
+Все мои попытки установить `python3-distutils` и `docker-compose-plugi` заканчивались поражением, так как эти пакеты отсутствуют в репозитории. Поэтому запуск сервисов я выполнила через отдельные команды `docker run`, а файлы `docker-compose.bad.yml` и `docker-compose.good.yml` использовала дальше как примеры неправильной и исправленной конфигурации.
+
+Запуск «ручного аналога» `docker-compose.good.yml`:
+
+<img width="622" height="343" alt="Снимок экрана 2025-12-25 032354" src="https://github.com/user-attachments/assets/b58e3d10-5239-4599-94ec-02915b203971" />
+
+Запуск nginx ("nginx успешно стартует и отдаёт страницу по http://localhost:8080"):
+
+<img width="610" height="547" alt="Снимок экрана 2025-12-25 032230" src="https://github.com/user-attachments/assets/bb417723-95c3-41cc-b8ae-e0e80b41eb5a" />
+<img width="736" height="346" alt="Снимок экрана 2025-12-25 032334" src="https://github.com/user-attachments/assets/6e7b8152-7c31-49b2-93e4-cd3816ef8394" />
 
 Успешно сработал.
 
-Для хорошего варианта был использован образ python:3.11-slim-bullseye, зависимости вынесены в requirements.txt, а секреты убраны из Dockerfile и передаются только через переменные окружения при запуске. Сборка выполнялась командой docker build -f good.Dockerfile -t lab2_good_image ., при запуске контейнера видно другое текстовое сообщение и отсутствие захардкоженного ключа, что позволяет на защите чётко показать отличие безопасной конфигурации от уязвимой.
+Инициализация Postgres:
 
-При попытке использовать docker‑compose для запуска нескольких сервисов в виртуальной машине Linux Mint 22 возникла ошибка ModuleNotFoundError: No module named 'distutils' внутри предустановленной утилиты docker-compose. Попытки доустановить пакеты python3-distutils и docker-compose-plugin оказались безуспешными из‑за отсутствия подходящих пакетов в репозитории, поэтому для практической части было принято решение запускать сервисы эквивалентными командами docker run, а сами файлы docker-compose.bad.yml и docker-compose.good.yml использовать в отчёте как иллюстрацию неправильной и исправленной конфигурации.
+<img width="628" height="531" alt="Снимок экрана 2025-12-25 033043" src="https://github.com/user-attachments/assets/ecb2ca72-0e19-4bc4-ab75-9781bc84d1bb" />
 
-«Хороший» вариант docker‑compose был воспроизведён вручную через три команды docker run, каждая из которых повторяет настройки соответствующего сервиса из docker-compose.good.yml (фиксированные версии образов, том для данных Postgres, пароли через переменные окружения и отдельные сети). На скринах видно, что nginx успешно стартует и отдаёт страницу по http://localhost:8080, Postgres завершает инициализацию с сообщением database system is ready to accept connections, а Redis принимает соединения с заданным паролем, что подтверждает корректность конфигурации и позволяет считать цели лабораторной работы выполненными, несмотря на проблемы с утилитой docker‑compose в используемом дистрибутиве.
+Запуск Redis:
+
+<img width="651" height="310" alt="Снимок экрана 2025-12-25 033554" src="https://github.com/user-attachments/assets/f9818ba2-d9a2-4e17-ba3d-ced5a2ffd24c" />
+<img width="650" height="375" alt="Снимок экрана 2025-12-25 034133" src="https://github.com/user-attachments/assets/9565b7be-ddba-483b-b3c7-cec5d2296edc" />
+
+В итоге из-за ошибок получилось, что «хороший» вариант `docker‑compose` был запцщен вручную через три команды `docker run`, каждая из которых повторяет настройки соответствующего сервиса из `docker-compose.good.yml` (фиксированные версии образов, том для данных Postgres, пароли через переменные окружения и отдельные сети). На скринах видно, что nginx успешно стартует и отдаёт страницу по `http://localhost:8080`, Postgres завершает инициализацию с сообщением `database system is ready to accept connections`, а Redis принимает соединения с заданным паролем, что подтверждает корректность конфигурации и позволяет считать цели лабораторной работы выполненными, несмотря на проблемы с утилитой `docker‑compose` в используемом дистрибутиве.
 ​
 
 
